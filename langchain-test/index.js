@@ -8,11 +8,22 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 
 import 'dotenv/config'
 
+import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+
+
 try {
-    const loader = new CSVLoader("ndis-src-docs/NDIS-Catalogue.csv");
-
+    const loader = new DirectoryLoader(
+        "ndis-src-docs",
+        {
+            ".csv": (path) => new CSVLoader(path),
+            ".pdf": (path) => new PDFLoader(path, {
+                parsedItemSeparator: "",
+            }),
+        }
+    );
     const docs = await loader.load();
-
+    // console.log({ docs });
     const splitter = new RecursiveCharacterTextSplitter();
 
     const output = await splitter.splitDocuments(docs);
@@ -37,4 +48,39 @@ try {
 } catch (e) {
     console.log(e);
 }
+
+
+
+
+// try {
+//     const loader = new CSVLoader("ndis-src-docs/NDIS-Catalogue.csv");
+
+//     const docs = await loader.load();
+
+//     const splitter = new RecursiveCharacterTextSplitter();
+
+//     const output = await splitter.splitDocuments(docs);
+
+//     //console.log(output);
+
+//     const sbApiKey = process.env.SUPABASE_API_KEY;
+//     const sbUrl = process.env.SUPABASE_URL;
+//     const openAIApiKey = process.env.OPENAI_API_KEY;
+
+//     const client = createClient(sbUrl, sbApiKey);
+
+//     await SupabaseVectorStore.fromDocuments(
+//         output,
+//         new OpenAIEmbeddings({ openAIApiKey }),
+//         {
+//             client,
+//             tableName: "documents",
+//         }
+//     );
+
+//     // Upload second document set
+
+// } catch (e) {
+//     console.log(e);
+// }
 

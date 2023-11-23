@@ -38,7 +38,7 @@ function App() {
   const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
 
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-  Find the answer based on the context provided. Respond with the item code which best matches. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options. Order the options in terms of which is most likely to be the correct option.
+  Find the answer based on the context provided. Check for rules from context documents and summarise. Respond with the item code which best matches. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options. Order the options in terms of which is most likely to be the correct option.
   context: {context}
   question: {question}
   answer:
@@ -60,7 +60,6 @@ function App() {
     retriever,
     combineDocuments
   ]);
-
 
   const answerChain = answerPrompt.pipe(llm).pipe(parser2)
 
