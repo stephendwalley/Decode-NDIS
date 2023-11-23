@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
 import './App.css';
 
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { PromptTemplate } from "langchain/prompts";
+
+
+
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
+
+  const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
+
+  const llm = new ChatOpenAI({ openAIApiKey });
+
+  const codeTemplate = 'Match the most applicable NDIS code based on this activity or item description: {itemDesc}';
+  const prompt = PromptTemplate.fromTemplate(codeTemplate)
+
+  console.log(prompt)
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
