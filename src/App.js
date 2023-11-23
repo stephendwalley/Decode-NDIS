@@ -10,6 +10,8 @@ import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { StringOutputParser } from "langchain/schema/output_parser";
 
+import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable"
+
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
@@ -35,24 +37,69 @@ function App() {
   const codeTemplate = 'Match the most applicable NDIS code based on this activity or item description: {itemDesc}';
   const codePrompt = PromptTemplate.fromTemplate(codeTemplate);
 
+  const standaloneQuestionTemplate = 'Convert to a standalone question. item_desc: {itemDesc} standalone_question:';
+  const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
+
   const answerTemplate = `You are a reasonably serious assistant bot given an item or activity description and asked to find the most applicable NDIS code. 
-  Try to find the answer in the context. If you really don't know the answer, say "I'm sorry, I'm unable to find a suitable NDIS code for this item or activity. 
-  Please visit the NDIS website for more information or contact us at help@decodendis.com"
+  Try to find the answer in the context. Respond with the item code which best matches or is most suitable. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options
   context: {context}
   question: {question}
   answer:
   `;
-
-  const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
 
   const combineDocuments = (docs) => {
     return docs.map((doc) => doc.pageContent).join("\n\n");
   }
 
   const parser = new StringOutputParser();
+  const parser2 = new StringOutputParser();
 
-  const codeChain = codePrompt.pipe(llm).pipe(parser).pipe(retriever).pipe(combineDocuments);
+  const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
 
+  // const questionChain = codePrompt.pipe(llm).pipe(parser);
+  const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(parser);
+  // const retrieverChain = RunnableSequence.from([
+  //   prevResult => prevResult.question,
+  //   retriever, 
+  //   combineDocuments
+  // ]);
+  const retrieverChain = RunnableSequence.from([
+    prevResult => prevResult.standalone_question,
+    retriever, 
+    combineDocuments
+  ]);
+
+
+  const answerChain = answerPrompt.pipe(llm).pipe(parser2)
+
+
+
+ 
+
+  // const chain = RunnableSequence.from([
+  //   {
+  //     question: questionChain,
+  //     original_input: new RunnablePassthrough(),
+  //   },
+  //   {
+  //     context: retrieverChain,
+  //     question: ({original_input}) => original_input.question
+  //   },
+  //   answerChain
+  // ]);
+
+
+  const chain = RunnableSequence.from([
+    {
+        standalone_question: standaloneQuestionChain,
+        original_input: new RunnablePassthrough()
+    },
+    {
+        context: retrieverChain,
+        question: ({ original_input }) => original_input.question
+    },
+    answerChain
+])
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
@@ -61,9 +108,9 @@ function App() {
   const handleSubmit = async () => {
     try {
       console.log('Testing API call');
-      const response = await codeChain.invoke({ itemDesc: inputText });
+      const response = await chain.invoke({ itemDesc: inputText });
       console.log(response)
-      // setDecodedText(response);
+      setDecodedText(response);
 
       // const response2 = await retriever.invoke('What code to use for community access on a weekday?');
       // console.log(response2)
