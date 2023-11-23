@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 import { ChatOpenAI } from "langchain/chat_models/openai";
@@ -34,11 +34,11 @@ function App() {
 
   const llm = new ChatOpenAI({ openAIApiKey });
 
-  const standaloneQuestionTemplate = 'What is the most relevant NDIS code based on the activity or item from {itemDesc} standalone_question:';
+  const standaloneQuestionTemplate = 'Convert to a standalone question, What NDIS code matches the activity or item from {itemDesc} standalone_question:';
   const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
 
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-  Find the answer based on the context provided. Respond with the item code which best matches. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options
+  Find the answer based on the context provided. Respond with the item code which best matches. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options. Order the options in terms of which is most likely to be the correct option.
   context: {context}
   question: {question}
   answer:
@@ -57,7 +57,7 @@ function App() {
 
   const retrieverChain = RunnableSequence.from([
     prevResult => prevResult.standalone_question,
-    retriever, 
+    retriever,
     combineDocuments
   ]);
 
@@ -67,15 +67,15 @@ function App() {
 
   const chain = RunnableSequence.from([
     {
-        standalone_question: standaloneQuestionChain,
-        original_input: new RunnablePassthrough()
+      standalone_question: standaloneQuestionChain,
+      original_input: new RunnablePassthrough()
     },
     {
-        context: retrieverChain,
-        question: ({ original_input }) => original_input.question
+      context: retrieverChain,
+      question: ({ original_input }) => original_input.question
     },
     answerChain
-])
+  ])
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
