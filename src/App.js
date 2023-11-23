@@ -34,14 +34,11 @@ function App() {
 
   const llm = new ChatOpenAI({ openAIApiKey });
 
-  const codeTemplate = 'Match the most applicable NDIS code based on this activity or item description: {itemDesc}';
-  const codePrompt = PromptTemplate.fromTemplate(codeTemplate);
-
-  const standaloneQuestionTemplate = 'Convert to a standalone question. item_desc: {itemDesc} standalone_question:';
+  const standaloneQuestionTemplate = 'What is the most relevant NDIS code based on the activity or item from {itemDesc} standalone_question:';
   const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
 
-  const answerTemplate = `You are a reasonably serious assistant bot given an item or activity description and asked to find the most applicable NDIS code. 
-  Try to find the answer in the context. Respond with the item code which best matches or is most suitable. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options
+  const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
+  Find the answer based on the context provided. Respond with the item code which best matches. With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: In the case of multiple options, provide the other options with the same format and state, these are also potential options
   context: {context}
   question: {question}
   answer:
@@ -56,13 +53,8 @@ function App() {
 
   const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
 
-  // const questionChain = codePrompt.pipe(llm).pipe(parser);
   const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(parser);
-  // const retrieverChain = RunnableSequence.from([
-  //   prevResult => prevResult.question,
-  //   retriever, 
-  //   combineDocuments
-  // ]);
+
   const retrieverChain = RunnableSequence.from([
     prevResult => prevResult.standalone_question,
     retriever, 
@@ -71,22 +63,6 @@ function App() {
 
 
   const answerChain = answerPrompt.pipe(llm).pipe(parser2)
-
-
-
- 
-
-  // const chain = RunnableSequence.from([
-  //   {
-  //     question: questionChain,
-  //     original_input: new RunnablePassthrough(),
-  //   },
-  //   {
-  //     context: retrieverChain,
-  //     question: ({original_input}) => original_input.question
-  //   },
-  //   answerChain
-  // ]);
 
 
   const chain = RunnableSequence.from([
@@ -112,8 +88,6 @@ function App() {
       console.log(response)
       setDecodedText(response);
 
-      // const response2 = await retriever.invoke('What code to use for community access on a weekday?');
-      // console.log(response2)
     } catch (error) {
       // Handle errors from the API call
       console.error('Error calling API:', error);
