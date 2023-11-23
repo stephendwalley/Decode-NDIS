@@ -15,18 +15,25 @@ function App() {
   const llm = new ChatOpenAI({ openAIApiKey });
 
   const codeTemplate = 'Match the most applicable NDIS code based on this activity or item description: {itemDesc}';
-  const prompt = PromptTemplate.fromTemplate(codeTemplate)
+  const codePrompt = PromptTemplate.fromTemplate(codeTemplate)
 
-  console.log(prompt)
+  const codeChain = codePrompt.pipe(llm)
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
   };
 
   const handleSubmit = async () => {
-    // TODO: Add ChatGPT API Integration here
-    // For now, we'll just display the input text
-    setDecodedText(inputText);
+    try {
+      console.log('Testing API call');
+      const response = await codeChain.invoke({ itemDesc: inputText });
+      console.log(response.content)
+      setDecodedText(response.content);
+    } catch (error) {
+      // Handle errors from the API call
+      console.error('Error calling API:', error);
+      // Set an appropriate error message or handle the error in your UI
+    }
   };
 
   return (
