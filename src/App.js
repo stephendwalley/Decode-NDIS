@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { PromptTemplate } from "langchain/prompts";
 
+// import { CSVLoader } from "langchain/document_loaders/fs/csv";
 
 
 function App() {
@@ -19,6 +20,19 @@ function App() {
 
   const codeChain = codePrompt.pipe(llm)
 
+ 
+
+  useEffect(() => {
+    // load data from csv file
+    // const loader = new CSVLoader("./ndis-src-docs/NDIS-Catalogue.csv");
+    // loader.load().then((data) => {
+    //   console.log(data);
+    // });
+  }
+  , []);
+
+
+
   const handleInputChange = (e) => {
     setInputText(e.target.value);
   };
@@ -32,7 +46,6 @@ function App() {
     } catch (error) {
       // Handle errors from the API call
       console.error('Error calling API:', error);
-      // Set an appropriate error message or handle the error in your UI
     }
   };
 
