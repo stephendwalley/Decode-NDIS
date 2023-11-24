@@ -42,7 +42,7 @@ function App() {
 
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
   Find the answer based on the context provided.
-  Respond with the item code which best matches. When detail is not given assume activity is 1 on 1 hourly on weekday, normal intensity. 
+  Respond with the item code which best matches. Unless specified, assume the activity is 1 on 1 hourly on weekday with normal intensity. 
   Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
   context: {context}
   question: {question}
@@ -66,7 +66,7 @@ function App() {
   //   combineDocuments
   // ]);
 
-  const customQuestion = "Match the item description to the most suitable NDIS code and find the price caps for that specific code based on the Item Description:"
+  const customQuestion = "Given an item description and the assumption that the activity is 1 on 1 hourly on a weekday with normal intensity unless otherwise specified, match the item description to the most suitable NDIS code. Additionally, find the price caps associated with that specific NDIS code."
 
   const retrieverChain = RunnableSequence.from([
     prevResult => `${customQuestion} ${prevResult.original_input.itemDesc}`,
