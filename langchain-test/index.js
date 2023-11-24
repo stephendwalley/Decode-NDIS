@@ -16,10 +16,8 @@ try {
     const loader = new DirectoryLoader(
         "ndis-src-docs",
         {
+            ".pdf": (path) => new PDFLoader(path),
             ".csv": (path) => new CSVLoader(path),
-            ".pdf": (path) => new PDFLoader(path, {
-                parsedItemSeparator: "",
-            }),
         }
     );
     const docs = await loader.load();
@@ -38,7 +36,9 @@ try {
 
     await SupabaseVectorStore.fromDocuments(
         output,
-        new OpenAIEmbeddings({ openAIApiKey }),
+        new OpenAIEmbeddings({
+            openAIApiKey,
+        }),
         {
             client,
             tableName: "documents",

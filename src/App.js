@@ -32,14 +32,18 @@ function App() {
   const retriever = vectorStore.asRetriever();
 
 
-  const llm = new ChatOpenAI({ openAIApiKey });
+  const llm = new ChatOpenAI({
+    openAIApiKey,
+    modelName: "gpt-4"
+  });
 
-  const standaloneQuestionTemplate = 'Convert to a standalone question, What NDIS code matches the activity or item from Item Description: {itemDesc} standalone_question:';
-  const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
+  // const standaloneQuestionTemplate = 'Convert to a standalone question, What NDIS code matches the activity or item from Item Description: {itemDesc} standalone_question:';
+  // const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
 
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-  Find the answer based on the context provided. Check for rules from context documents and summarise. Respond with the item code which best matches. When detail is not given assume activity is 1 on 1 hourly on weekday, normal intensity. Prioritise choosing codes that have price caps rather then no price cap.
-  With the item code respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format and state, these are also potential options. Order the options in terms of which is most likely to be the correct option.
+  Find the answer based on the context provided.
+  Respond with the item code which best matches. When detail is not given assume activity is 1 on 1 hourly on weekday, normal intensity. 
+  Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
   context: {context}
   question: {question}
   answer:
@@ -54,10 +58,18 @@ function App() {
 
   const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
 
-  const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(parser);
+  // const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(parser);
+
+  // const retrieverChain = RunnableSequence.from([
+  //   prevResult => prevResult.standalone_question,
+  //   retriever,
+  //   combineDocuments
+  // ]);
+
+  const customQuestion = "Match the item description to the most suitable NDIS code and find the price caps for that specific code based on the Item Description:"
 
   const retrieverChain = RunnableSequence.from([
-    prevResult => prevResult.standalone_question,
+    prevResult => `${customQuestion} ${prevResult.original_input.itemDesc}`,
     retriever,
     combineDocuments
   ]);
@@ -65,14 +77,25 @@ function App() {
   const answerChain = answerPrompt.pipe(llm).pipe(parser2)
 
 
+  // const chain = RunnableSequence.from([
+  //   {
+  //     standalone_question: standaloneQuestionChain,
+  //     original_input: new RunnablePassthrough()
+  //   },
+  //   {
+  //     context: retrieverChain,
+  //     question: ({ original_input }) => original_input.question
+  //   },
+  //   answerChain
+  // ])
+
   const chain = RunnableSequence.from([
     {
-      standalone_question: standaloneQuestionChain,
       original_input: new RunnablePassthrough()
     },
     {
       context: retrieverChain,
-      question: ({ original_input }) => original_input.question
+      question: ({ original_input }) => original_input.itemDesc
     },
     answerChain
   ])
