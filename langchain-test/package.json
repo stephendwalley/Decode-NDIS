@@ -12,8 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",
+    "csv-parser": "^3.0.0",
     "d3-dsv": "^2.0.0",
     "dotenv": "^16.3.1",
+    "fs": "^0.0.1-security",
     "langchain": "^0.0.197-rc.1",
     "pdf-parse": "^1.1.1"
   }
