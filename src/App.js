@@ -37,9 +37,6 @@ function App() {
     modelName: "gpt-4"
   });
 
-  // const standaloneQuestionTemplate = 'Convert to a standalone question, What NDIS code matches the activity or item from Item Description: {itemDesc} standalone_question:';
-  // const standaloneQuestionPrompt = PromptTemplate.fromTemplate(standaloneQuestionTemplate);
-
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
   Find the answer based on the context provided.
   Respond with the item code which best matches. Unless specified, assume the activity is 1 on 1 hourly on weekday with normal intensity. 
@@ -53,19 +50,9 @@ function App() {
     return docs.map((doc) => doc.pageContent).join("\n\n");
   }
 
-  const parser = new StringOutputParser();
   const parser2 = new StringOutputParser();
 
   const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
-
-  // const standaloneQuestionChain = standaloneQuestionPrompt.pipe(llm).pipe(parser);
-
-  // const retrieverChain = RunnableSequence.from([
-  //   prevResult => prevResult.standalone_question,
-  //   retriever,
-  //   combineDocuments
-  // ]);
-
   const customQuestion = "Given an item description and the assumption that the activity is 1 on 1 hourly on a weekday with normal intensity unless otherwise specified, match the item description to the most suitable NDIS code. Additionally, find the price caps associated with that specific NDIS code."
 
   const retrieverChain = RunnableSequence.from([
@@ -76,18 +63,6 @@ function App() {
 
   const answerChain = answerPrompt.pipe(llm).pipe(parser2)
 
-
-  // const chain = RunnableSequence.from([
-  //   {
-  //     standalone_question: standaloneQuestionChain,
-  //     original_input: new RunnablePassthrough()
-  //   },
-  //   {
-  //     context: retrieverChain,
-  //     question: ({ original_input }) => original_input.question
-  //   },
-  //   answerChain
-  // ])
 
   const chain = RunnableSequence.from([
     {

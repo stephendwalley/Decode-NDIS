@@ -86,7 +86,7 @@ import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 
 // PDF loader
 try {
-    const loader = new CSVLoader("ndis-src-docs/NDIS-Catalogue.csv");
+    const loader = new CSVLoader("ndis-src-docs/output_sheet.csv");
 
     const docs = await loader.load();
 
