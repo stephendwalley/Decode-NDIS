@@ -13,6 +13,8 @@ import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable
 
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
+import Modal from 'react-modal';
+
 import logo from './Decode_NDIS.png';
 import axios from 'axios';
 
@@ -22,6 +24,10 @@ function App() {
   const [chain, setChain] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
   const imageUrl = null;
+
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -176,6 +182,11 @@ function App() {
     setUploadedFile(e.target.files[0]);
   };
 
+  const handleCategoryChange = (event) => {
+    const value = parseInt(event.target.value, 10);
+    setSelectedCategories(prev => event.target.checked ? [...prev, value] : prev.filter(category => category !== value));
+  };
+
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
       {/* <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center pt-5">Decode NDIS</h1> */}
@@ -209,7 +220,24 @@ function App() {
         placeholder="Or, enter invoice text here"
         className="h-1/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
+      <button onClick={() => setModalIsOpen(true)} className="underline text-gray-500 hover:text-gray-800 mx-auto block w-1/2 my-4 font-semibold">Select your plan categories (optional)</button>
 
+      <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} style={{ content: { width: '30%', margin: '0 auto', position: 'absolute', top: '30%', bottom: '30%' }, overlay: { backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(5px)' } }}>
+        <button onClick={() => setModalIsOpen(false)} style={{ position: 'absolute', right: '10px', top: '10px', background: 'transparent', border: 'none' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6 text-gray-600 hover:text-gray-800">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <form>
+          <h2 className="text-center text-gray-700 font-semibold mb-4 text-xl">Select the available plan categories</h2>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map(number => (
+            <div key={number} className="flex items-center space-x-4">
+              <input type="checkbox" id={`category-${number}`} value={number} onChange={handleCategoryChange} className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 h-4 w-4" />
+              <label htmlFor={`category-${number}`} className="font-medium text-gray-700">Category {number}</label>
+            </div>
+          ))}
+        </form>
+      </Modal>
       <button
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
