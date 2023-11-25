@@ -28,14 +28,14 @@ https://youtu.be/bZ5OensSb6k
 3. Decode NDIS will output the most relevant code or codes for the item.
 
 ### Example: Psychologist Appointment
-<img width="521" alt="285592133-579fe7f2-5e21-4045-b8ca-1aa19919ac3f" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/1d2efb74-deae-4925-9d26-38562c43c0e3">
+<p align="center">
+  <img width="521" alt="285592133-579fe7f2-5e21-4045-b8ca-1aa19919ac3f" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/7d97e84d-4a8e-455d-9776-a05569e2fb28">
+</p>
 
-
-Multiple options:
-<img width="527" alt="285592249-633ebb18-83b4-4499-939a-f5faf5d7e974" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/dea40d88-ae60-434e-8617-f2dc3acb266c">
-
-
-   
+**Multiple options:**
+<p align="center">
+  <img width="527" alt="285592249-633ebb18-83b4-4499-939a-f5faf5d7e974" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/8fc3f144-c606-4226-ba4f-cf07b7844a95">
+</p>
 
 This item actually provides 5 different codes that could be applicable. It orders them based on what it deems the most likely to be applicable. Multiple options will often be the case where the item description is not detailed enough. In this case it provides many options as it does not know the age of the participant. Similarly, some charges can be coded to two different plans so it provides the same code under 15 and category 1.
 
