@@ -52,7 +52,7 @@ function App() {
       modelName: "gpt-4"
     });
 
-    const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
+    const answerTemplate = `Given an item or activity description find the most suitable NDIS code or codes.
     Find the answer based on the context provided.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
     Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
