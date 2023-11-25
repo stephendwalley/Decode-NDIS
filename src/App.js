@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import OpenAI from "openai";
 import { PromptTemplate } from "langchain/prompts";
 
 
@@ -22,7 +21,7 @@ function App() {
   const [decodedText, setDecodedText] = useState('');
   const [chain, setChain] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const imageUrl = null;
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -215,14 +214,13 @@ function App() {
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
       >Decode</button>
-      <p
-        className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
-      >Decoded NDIS Code:</p>
       <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2  mb-1">
-        <p className="text-center text-gray-500 text-md font-semibold my-4 w-full">
+        <p className="text-left text-gray-500 text-lg font-semibold my-4 w-full">
           {decodedText.split('\n').map((line, index) => (
             <React.Fragment key={index}>
-              {line.startsWith('Item Code:') ? <strong>{line}</strong> : line}
+              {line.startsWith('Item Code:') && <p className="text-l font-bold"><strong>{line.substring(0, 'Item Code:'.length)}</strong>{line.substring('Item Code:'.length)}</p>}
+              {line.startsWith('Description:') && <><strong>{line.substring(0, 'Description:'.length)}</strong>{line.substring('Description:'.length)}</>}
+              {line.startsWith('Price Cap:') && <><strong>{line.substring(0, 'Price Cap:'.length)}</strong>{line.substring('Price Cap:'.length)}</>}
               <br />
             </React.Fragment>
           ))}
