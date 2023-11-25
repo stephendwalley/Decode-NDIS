@@ -53,34 +53,35 @@ function App() {
     });
 
     const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-    Find the answer based on the context provided. Only select items that are from either of the SupportCategoryNumbers given. They don't have to be from all, just must be from one of the options given. Do not select items that are not from the SupportCategoryNumbers given based on the context metadata.
+    Find the answer based on the context provided.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
     Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
     context: {context}
-    Support Category Number: {support_category_number}
     question: {question}
     answer:
     `;
 
     const combineDocuments = (docs) => {
-      return docs.map((doc) => {
-        const {
-          'Detailed Description': _,
-          'Support Item Name': __,
-          'Registration Group Name': ___,
-          'NT': ____,
-          'SA': _____,
-          'WA': ______,
-          'NSW': _______,
-          'QLD': ________,
-          'TAS': _________,
-          'ACT': __________,
-          'Detailed Item Description': ___________,
-          ...restOfMetadata
-        } = doc.metadata;
-        const formattedMetadata = Object.entries(restOfMetadata).map(([key, value]) => `${key}: ${value}`).join('\n');
-        return `${doc.pageContent}\n\n\n${formattedMetadata}`;
-      }).join("\n\n");
+      return docs
+        // .filter(doc => selectedCategories.map(String).includes(doc.metadata['Support Category Number']))
+        .map((doc) => {
+          const {
+            'Detailed Description': _,
+            'Support Item Name': __,
+            'Registration Group Name': ___,
+            'NT': ____,
+            'SA': _____,
+            'WA': ______,
+            'NSW': _______,
+            'QLD': ________,
+            'TAS': _________,
+            'ACT': __________,
+            'Detailed Item Description': ___________,
+            ...restOfMetadata
+          } = doc.metadata;
+          const formattedMetadata = Object.entries(restOfMetadata).map(([key, value]) => `${key}: ${value}`).join('\n');
+          return `${doc.pageContent}\n\n\n${formattedMetadata}`;
+        }).join("\n\n");
     }
 
     const parser2 = new StringOutputParser();
@@ -249,14 +250,13 @@ function App() {
       >Decode</button>
       <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
         {decodedText.split('\n').filter(line => line.trim() !== '').map((line, index) => (
-          <>
-            <React.Fragment key={index}>
-              {line.startsWith('Item Code:') && <p className="text-lg font-bold text-gray-500"><strong>{line.substring(0, 'Item Code: '.length)}</strong>{line.substring('Item Code:'.length).trim()}</p>}
-              {line.startsWith('Description:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Description: '.length)}</strong>{line.substring('Description:'.length).trim()}</p>}
-              {line.startsWith('Price Cap:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Price Cap: '.length)}</strong>{line.substring('Price Cap:'.length).trim()}</p>}
-            </React.Fragment>
+          <React.Fragment key={index}>
+            {line.startsWith('Item Code:') && <p className="text-lg font-bold text-gray-500"><strong>{line.substring(0, 'Item Code: '.length)}</strong>{line.substring('Item Code:'.length).trim()}</p>}
+            {line.startsWith('Description:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Description: '.length)}</strong>{line.substring('Description:'.length).trim()}</p>}
+            {line.startsWith('Price Cap:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Price Cap: '.length)}</strong>{line.substring('Price Cap:'.length).trim()}</p>}
+            {!line.startsWith('Item Code:') && !line.startsWith('Description:') && !line.startsWith('Price Cap:') && <p className="text-lg text-gray-500">{line}</p>}
             <br />
-          </>
+          </React.Fragment>
         ))}
       </div>
       <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-2">
