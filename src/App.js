@@ -113,60 +113,71 @@ function App() {
     setInputText(e.target.value);
   };
 
+
+
+  // Modify the submit handler to send the file or text to the OpenAI API
   const handleSubmit = async () => {
-    try {
-      console.log('Testing API call');
-      const response = await chain.invoke({ itemDesc: inputText });
-      console.log(response)
-      setDecodedText(response);
-    } catch (error) {
-      // Handle errors from the API call
-      console.error('Error calling API:', error);
+    if (uploadedFile) {
+      const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Image = event.target.result.split(',')[1]; // Remove the data URL prefix
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        };
+
+        const payload = {
+          model: 'gpt-4-vision-preview',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 300
+        };
+
+        try {
+          const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
+          const openaiResponse = response.data.choices[0].message.content;
+          console.log(openaiResponse);
+          const chainResponse = await chain.invoke({ itemDesc: openaiResponse });
+          console.log(chainResponse);
+          setDecodedText(chainResponse);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      reader.readAsDataURL(uploadedFile);
+    } else {
+      try {
+        console.log('Testing API call');
+        const response = await chain.invoke({ itemDesc: inputText });
+        console.log(response)
+        setDecodedText(response);
+      } catch (error) {
+        // Handle errors from the API call
+        console.error('Error calling API:', error);
+      }
     }
   };
 
 
-  
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64Image = event.target.result.split(',')[1]; // Remove the data URL prefix
 
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      };
-
-      const payload = {
-        model: 'gpt-4-vision-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 300
-      };
-
-      try {
-        const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
-        console.log(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    reader.readAsDataURL(file);
+  const handleFileUpload = (e) => {
+    setUploadedFile(e.target.files[0]);
   };
+
 
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
@@ -178,7 +189,13 @@ function App() {
         placeholder="Enter or paste the invoice text here"
         className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
-      <input type="file" onChange={handleFileUpload} />
+      <p 
+      className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
+      >
+        or</p>
+      <input type="file" onChange={handleFileUpload} 
+      className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
+      />
       <button
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
