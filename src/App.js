@@ -13,6 +13,8 @@ import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable
 
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
+import logo from './Decode_NDIS.png';
+
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
@@ -45,7 +47,7 @@ function App() {
     const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
     Find the answer based on the context provided. Only select items that are from either of the Support Category Number "4", "1", "2", "3". They don't have to be from all, just must be from one of the options given.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
-    Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
+    Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
     context: {context}
     question: {question}
     answer:
@@ -122,8 +124,9 @@ function App() {
   };
 
   return (
-    <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center pt-10">
-      <h1 className="font-sans text-6xl font-extrabold text-gray-600 text-center p-5">Decode NDIS</h1>
+    <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
+      {/* <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center pt-5">Decode NDIS</h1> */}
+      <img src={logo} className="h-32" alt="Tailwind Play" />
       <textarea
         value={inputText}
         onChange={handleInputChange}
@@ -132,13 +135,13 @@ function App() {
       />
       <button
         onClick={handleSubmit}
-        className="inline-flex items-center px-6 py-3 border border-transparent text-center font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg"
+        className="flex justify-center items-center px-6 py-3 border border-transparent text-center font-medium rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg"
       >Decode</button>
       <p
         className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
       >Decoded NDIS Code:</p>
-      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200">
-        <p className="text-center text-gray-500 text-md font-semibold my-4 w-max">
+      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2  mb-1">
+        <p className="text-center text-gray-500 text-md font-semibold my-4 w-full">
           {decodedText.split('\n').map((line, index) => (
             <React.Fragment key={index}>
               {line.startsWith('Item Code:') ? <strong>{line}</strong> : line}
@@ -147,7 +150,7 @@ function App() {
           ))}
         </p>
       </div>
-      <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-0">
+      <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-2">
         The information supplied is taken directly from the Support Catalogue and NDIS Pricing Arrangements and Price Limits provided by the NDIS. Decode NDIS take no responsibility or liability for its accuracy.
       </p>
     </div>
