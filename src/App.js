@@ -26,7 +26,7 @@ function App() {
   const imageUrl = null;
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState(Array.from({ length: 15 }, (_, i) => (i + 1).toString()));
 
 
   useEffect(() => {
@@ -53,10 +53,11 @@ function App() {
     });
 
     const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-    Find the answer based on the context provided. Only select items that are from either of the Support Category Number "4", "1", "2", "3". They don't have to be from all, just must be from one of the options given.
+    Find the answer based on the context provided. Only select items that are from either of the SupportCategoryNumbers given. They don't have to be from all, just must be from one of the options given. Do not select items that are not from the SupportCategoryNumbers given based on the context metadata.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
     Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
     context: {context}
+    Support Category Number: {support_category_number}
     question: {question}
     answer:
     `;
@@ -105,7 +106,9 @@ function App() {
       },
       {
         context: retrieverChain,
-        question: ({ original_input }) => original_input.itemDesc
+        support_category_number: () => selectedCategories.join(','),
+        question: ({ original_input }) => original_input.itemDesc,
+
       },
       answerChain
     ])
@@ -183,9 +186,11 @@ function App() {
   };
 
   const handleCategoryChange = (event) => {
-    const value = parseInt(event.target.value, 10);
-    setSelectedCategories(prev => event.target.checked ? [...prev, value] : prev.filter(category => category !== value));
+    const { value, checked } = event.target;
+    setSelectedCategories(prevState => checked ? [...prevState, value] : prevState.filter(category => category !== value));
   };
+
+  Modal.setAppElement('#root');
 
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
@@ -230,9 +235,9 @@ function App() {
         </button>
         <form>
           <h2 className="text-center text-gray-700 font-semibold mb-4 text-xl">Select the available plan categories</h2>
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(number => (
+          {Array.from({ length: 15 }, (_, i) => i + 1).map(number => (
             <div key={number} className="flex items-center space-x-4">
-              <input type="checkbox" id={`category-${number}`} value={number} onChange={handleCategoryChange} className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 h-4 w-4" />
+              <input type="checkbox" id={`category-${number}`} value={number} onChange={handleCategoryChange} checked={selectedCategories.includes(number.toString())} className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 h-4 w-4" />
               <label htmlFor={`category-${number}`} className="font-medium text-gray-700">Category {number}</label>
             </div>
           ))}
@@ -242,17 +247,17 @@ function App() {
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
       >Decode</button>
-      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2  mb-1">
-        <p className="text-left text-gray-500 text-lg font-semibold my-4 w-full">
-          {decodedText.split('\n').map((line, index) => (
+      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
+        {decodedText.split('\n').filter(line => line.trim() !== '').map((line, index) => (
+          <>
             <React.Fragment key={index}>
-              {line.startsWith('Item Code:') && <p className="text-l font-bold"><strong>{line.substring(0, 'Item Code:'.length)}</strong>{line.substring('Item Code:'.length)}</p>}
-              {line.startsWith('Description:') && <><strong>{line.substring(0, 'Description:'.length)}</strong>{line.substring('Description:'.length)}</>}
-              {line.startsWith('Price Cap:') && <><strong>{line.substring(0, 'Price Cap:'.length)}</strong>{line.substring('Price Cap:'.length)}</>}
-              <br />
+              {line.startsWith('Item Code:') && <p className="text-lg font-bold text-gray-500"><strong>{line.substring(0, 'Item Code: '.length)}</strong>{line.substring('Item Code:'.length).trim()}</p>}
+              {line.startsWith('Description:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Description: '.length)}</strong>{line.substring('Description:'.length).trim()}</p>}
+              {line.startsWith('Price Cap:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Price Cap: '.length)}</strong>{line.substring('Price Cap:'.length).trim()}</p>}
             </React.Fragment>
-          ))}
-        </p>
+            <br />
+          </>
+        ))}
       </div>
       <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-2">
         The information supplied is taken directly from the Support Catalogue and NDIS Pricing Arrangements and Price Limits provided by the NDIS. Decode NDIS take no responsibility or liability for its accuracy.
