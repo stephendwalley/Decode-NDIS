@@ -14,15 +14,17 @@ import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
 import logo from './Decode_NDIS.png';
+import axios from 'axios';
 
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
   const [chain, setChain] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const imageUrl = null;
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
-
 
     const embeddings = new OpenAIEmbeddings({ openAIApiKey });
     const sbApiKey = process.env.REACT_APP_SUPABASE_API_KEY;
@@ -111,40 +113,114 @@ function App() {
     setInputText(e.target.value);
   };
 
+
+
+  // Modify the submit handler to send the file or text to the OpenAI API
   const handleSubmit = async () => {
-    try {
-      console.log('Testing API call');
-      const response = await chain.invoke({ itemDesc: inputText });
-      console.log(response)
-      setDecodedText(response);
-    } catch (error) {
-      // Handle errors from the API call
-      console.error('Error calling API:', error);
+    if (uploadedFile) {
+      const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Image = event.target.result.split(',')[1]; // Remove the data URL prefix
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        };
+
+        const payload = {
+          model: 'gpt-4-vision-preview',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 300
+        };
+
+        try {
+          const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
+          const openaiResponse = response.data.choices[0].message.content;
+          console.log(openaiResponse);
+          const chainResponse = await chain.invoke({ itemDesc: openaiResponse });
+          console.log(chainResponse);
+          setDecodedText(chainResponse);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      reader.readAsDataURL(uploadedFile);
+    } else {
+      try {
+        console.log('Testing API call');
+        const response = await chain.invoke({ itemDesc: inputText });
+        console.log(response)
+        setDecodedText(response);
+      } catch (error) {
+        // Handle errors from the API call
+        console.error('Error calling API:', error);
+      }
     }
+  };
+
+  const handleFileUpload = (e) => {
+    setUploadedFile(e.target.files[0]);
   };
 
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
       {/* <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center pt-5">Decode NDIS</h1> */}
       <img src={logo} className="h-32" alt="Tailwind Play" />
+      <div
+        className={`h-16 w-1/2 p-4 my-4 bg-white rounded focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500 ${uploadedFile ? 'border-none shadow-none bg-opacity-50' : 'border border-gray-300 shadow-sm'}`}
+      >
+        {imageUrl ? (
+          <>
+            <img src={imageUrl} alt="Uploaded" className="h-full w-full object-cover" />
+            <p className="text-center">{uploadedFile.name}</p>
+          </>
+        ) : (
+          <button
+            onClick={() => document.getElementById('file-upload').click()}
+            className="w-full h-full text-center font-semibold"
+          >
+            {uploadedFile ? <><strong>Upload successful:</strong> {uploadedFile.name}</> : 'Click to upload your invoice'}
+          </button>
+        )}
+        <input
+          id="file-upload"
+          type="file"
+          onChange={handleFileUpload}
+          style={{ display: 'none' }} // Hide the file input element
+        />
+      </div>
       <textarea
         value={inputText}
         onChange={handleInputChange}
-        placeholder="Enter or paste the invoice text here"
-        className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
+        placeholder="Or, enter invoice text here"
+        className="h-1/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
+
       <button
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
       >Decode</button>
-      <p
-        className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
-      >Decoded NDIS Code:</p>
       <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2  mb-1">
-        <p className="text-center text-gray-500 text-md font-semibold my-4 w-full">
+        <p className="text-left text-gray-500 text-lg font-semibold my-4 w-full">
           {decodedText.split('\n').map((line, index) => (
             <React.Fragment key={index}>
-              {line.startsWith('Item Code:') ? <strong>{line}</strong> : line}
+              {line.startsWith('Item Code:') && <p className="text-l font-bold"><strong>{line.substring(0, 'Item Code:'.length)}</strong>{line.substring('Item Code:'.length)}</p>}
+              {line.startsWith('Description:') && <><strong>{line.substring(0, 'Description:'.length)}</strong>{line.substring('Description:'.length)}</>}
+              {line.startsWith('Price Cap:') && <><strong>{line.substring(0, 'Price Cap:'.length)}</strong>{line.substring('Price Cap:'.length)}</>}
               <br />
             </React.Fragment>
           ))}
