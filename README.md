@@ -27,12 +27,17 @@ https://youtu.be/bZ5OensSb6k
 2. Press the decode button to decode your invoice and wait.
 3. Decode NDIS will output the most relevant code or codes for the item.
 
-   Example: Psychologist Appointment
-   <img width="521" alt="image" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/579fe7f2-5e21-4045-b8ca-1aa19919ac3f">
-   Multiple options:
-   <img width="527" alt="image" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/633ebb18-83b4-4499-939a-f5faf5d7e974">
+### Example: Psychologist Appointment
+<img width="521" alt="285592133-579fe7f2-5e21-4045-b8ca-1aa19919ac3f" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/1d2efb74-deae-4925-9d26-38562c43c0e3">
 
-   This item actually provides 5 different codes that could be applicable. It orders them based on what it deems the most likely to be applicable. Multiple options will often be the case where the item description is not detailed enough. In this case it provides many options as it does not know the age of the participant. Similarly, some charges can be coded to two different plans so it provides the same code under 15 and category 1.
+
+Multiple options:
+<img width="527" alt="285592249-633ebb18-83b4-4499-939a-f5faf5d7e974" src="https://github.com/stephendwalley/Decode-NDIS/assets/76471970/dea40d88-ae60-434e-8617-f2dc3acb266c">
+
+
+   
+
+This item actually provides 5 different codes that could be applicable. It orders them based on what it deems the most likely to be applicable. Multiple options will often be the case where the item description is not detailed enough. In this case it provides many options as it does not know the age of the participant. Similarly, some charges can be coded to two different plans so it provides the same code under 15 and category 1.
 
 ## Future implementations
 1. Currently initial work into plan selection for queries has been implemented. Metadata has been structured so that when using a self query a filter can be added that will restrict query results to only return items from the categories that the participant selects they have within their plan. This will allow them to have more personalised results.
