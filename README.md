@@ -15,5 +15,6 @@ https://youtu.be/bZ5OensSb6k
 ## Project Setup
 1. Clone the repo
 2. Run `npm install` to install dependencies
-3. Create a .env file in the root directory and add your OpenAI API key as `REACT_APP_OPENAI_API_KEY={your openai api key}` and add your Supabase URL `REACT_APP_SUPABASE_URL`={your supabse url} and add your Supabase API key as `REACT_APP_OPENAI_API_KEY={your supabase api key`
-4. Run `npm start` to start the app
+3. Create a .env file in the root directory and add your OpenAI API key as `REACT_APP_OPENAI_API_KEY={your openai api key}` and add your Supabase URL `REACT_APP_SUPABASE_URL`={your supabse url} and add your Supabase API key as `REACT_APP_OPENAI_API_KEY={your supabase api key}`
+4. To add vector embeddings for supabase cd to langchain-test folder. Create a .env file with the keys `OPENAI_API_KEY={your openai api key}`, `SUPABASE_URL={your supabse url}`, `OPENAI_API_KEY={your supabase api key}`. Run `node index` to embed information to Supabase.
+5. cd to root folder and run `npm start` to start the app.
