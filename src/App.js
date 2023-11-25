@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import { ChatOpenAI } from "langchain/chat_models/openai";
+import OpenAI from "openai";
 import { PromptTemplate } from "langchain/prompts";
 
 
@@ -15,6 +16,9 @@ import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
 import logo from './Decode_NDIS.png';
 
+import fs from 'fs';
+import axios from 'axios';
+
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
@@ -22,7 +26,6 @@ function App() {
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
-
 
     const embeddings = new OpenAIEmbeddings({ openAIApiKey });
     const sbApiKey = process.env.REACT_APP_SUPABASE_API_KEY;
@@ -123,6 +126,36 @@ function App() {
     }
   };
 
+  const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  const openai = new OpenAI({ apiKey: openAIApiKey});
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64Image = event.target.result;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4-vision-preview",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "What’s in this image?" },
+              {
+                type: "image_url",
+                image_url: base64Image,
+              },
+            ],
+          },
+        ],
+      });
+      console.log(response.choices[0]);
+    };
+    reader.readAsDataURL(file);
+  };
+
+
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
       {/* <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center pt-5">Decode NDIS</h1> */}
@@ -133,6 +166,7 @@ function App() {
         placeholder="Enter or paste the invoice text here"
         className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
+      <input type="file" onChange={handleFileUpload} />
       <button
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
