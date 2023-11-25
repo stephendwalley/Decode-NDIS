@@ -6,15 +6,12 @@ import { PromptTemplate } from "langchain/prompts";
 
 
 import { createClient } from "@supabase/supabase-js";
-import { SupabaseVectorStore, SupabaseFilterRPCCall } from "langchain/vectorstores/supabase";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { StringOutputParser } from "langchain/schema/output_parser";
 
 import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable"
-import { SupabaseTranslator } from "langchain/retrievers/self_query/supabase";
 
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
-import { OpenAI } from "langchain/llms/openai";
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -23,163 +20,11 @@ function App() {
   const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
 
-  const attributeInfo = [
-    {
-      name: "Code",
-      description: "The code of the item",
-      type: "text",
-    },
-    {
-      name: "Support Item Name",
-      description: "The name of the item",
-      type: "text",
-    },
-    {
-      name: "Registration Group Name",
-      description: "The registration group name",
-      type: "text",
-    },
-    {
-      name: "Support Category Number",
-      description: "The support category number",
-      type: "text",
-    },
-    {
-      name: "Support Category Name",
-      description: "The support category name",
-      type: "text",
-    },
-    {
-      name: "Unit",
-      description: "The unit",
-      type: "text",
-    },
-    {
-      name: "Quote",
-      description: "The quote",
-      type: "text",
-    },
-    {
-      name: "ACT",
-      description: "The ACT price cap",
-      type: "text",
-    },
-    {
-      name: "NSW",
-      description: "The NSW price cap",
-      type: "text",
-    },
-    {
-      name: "NT",
-      description: "The NT price cap",
-      type: "text",
-    },
-    {
-      name: "QLD",
-      description: "The QLD price cap",
-      type: "text",
-    },
-    {
-      name: "SA",
-      description: "The SA price cap",
-      type: "text",
-    },
-    {
-      name: "TAS",
-      description: "The TAS price cap",
-      type: "text",
-    },
-    {
-      name: "VIC",
-      description: "The VIC price cap",
-      type: "text",
-    },
-    {
-      name: "WA",
-      description: "The WA price cap",
-      type: "text",
-    },
-    {
-      name: "Remote",
-      description: "The remote price cap",
-      type: "text",
-    },
-    {
-      name: "Very Remote",
-      description: "The very remote price cap",
-      type: "text",
-    },
-    {
-      name: "Non-Face-to-Face Support Provision",
-      description: "The non-face-to-face support provision allowance",
-      type: "text",
-    },
-    {
-      name: "Provider Travel",
-      description: "The provider travel allowance",
-      type: "text",
-    },
-    {
-      name: "Short Notice Cancellations.",
-      description: "The short notice cancellations allowance",
-      type: "text",
-    },
-    {
-      name: "NDIA Requested Reports",
-      description: "The NDIA requested reports allowance",
-      type: "text",
-    },
-    {
-      name: "Irregular SIL Supports",
-      description: "The irregular SIL supports allowance",
-      type: "text",
-    },
-    {
-      name: "Type",
-      description: "The type of item",
-      type: "text",
-    },
-    {
-      name: "Detailed Item Description",
-      description: "The detailed item description",
-      type: "text",
-    },
-  ];
-
-
   const embeddings = new OpenAIEmbeddings({ openAIApiKey });
   const sbApiKey = process.env.REACT_APP_SUPABASE_API_KEY;
   const sbUrl = process.env.REACT_APP_SUPABASE_URL;
   const client = createClient(sbUrl, sbApiKey);
-  // const llm = new OpenAI();
 
-  // const vectorStore = new SupabaseVectorStore(embeddings, {
-  //   client,
-  //   tableName: "documents",
-  //   queryName: "match_documents",
-  // });
-
-  // const getRelevantDocuments = async (docs) => {
-  //   const vectorStore = await SupabaseVectorStore.fromDocuments(docs, embeddings, {
-  //     client,
-  //     tableName: "documents",
-  //     queryName: "match_documents",
-  //   });
-
-  //   const selfQueryRetriever = await SelfQueryRetriever.fromLLM({
-  //     llm,
-  //     vectorStore,
-  //     attributeInfo,
-  //     structuredQueryTranslator: new SupabaseTranslator(),
-  //   });
-
-  //   const query1 = await selfQueryRetriever.getRelevantDocuments(
-  //     "Which movies are less than 90 minutes?"
-  //   );
-  //   console.log(query1);
-  // };
-
-  // const retriever = vectorStore.asRetriever();
 
   const retriever = new SupabaseHybridSearch(embeddings, {
     client,
@@ -204,9 +49,6 @@ function App() {
   answer:
   `;
 
-  // const combineDocuments = (docs) => {
-  //   return docs.map((doc) => doc.pageContent).join("\n\n");
-  // }
   const combineDocuments = (docs) => {
     return docs.map((doc) => {
       const {
@@ -231,7 +73,6 @@ function App() {
   const parser2 = new StringOutputParser();
 
   const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
-  // const customQuestion = "Given an item description and the assumption that the activity is 1 on 1 hourly on a weekday with normal intensity unless otherwise specified, match the item description to the most suitable NDIS code. Additionally, find the price caps associated with that specific NDIS code."
 
   const retrieverChain = RunnableSequence.from([
     prevResult => `${prevResult.original_input.itemDesc}`,
@@ -267,7 +108,6 @@ function App() {
       const response = await chain.invoke({ itemDesc: inputText });
       console.log(response)
       setDecodedText(response);
-      // getRelevantDocuments();
     } catch (error) {
       // Handle errors from the API call
       console.error('Error calling API:', error);
