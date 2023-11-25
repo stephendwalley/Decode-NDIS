@@ -196,7 +196,7 @@ function App() {
   });
 
   const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-  Find the answer based on the context provided.
+  Find the answer based on the context provided. Only select items from Support Category Number "5" or "1". If there are none available say there are none in this category.
   Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
   Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
   context: {context}
@@ -209,8 +209,22 @@ function App() {
   // }
   const combineDocuments = (docs) => {
     return docs.map((doc) => {
-      const { 'Detailed Description': _, ...restOfMetadata } = doc.metadata;
-      return `${doc.pageContent}\n\nMetadata: ${JSON.stringify(restOfMetadata)}`;
+      const {
+        'Detailed Description': _,
+        'Support Item Name': __,
+        'Registration Group Name': ___,
+        'NT': ____,
+        'SA': _____,
+        'WA': ______,
+        'NSW': _______,
+        'QLD': ________,
+        'TAS': _________,
+        'ACT': __________,
+        'Detailed Item Description': ___________,
+        ...restOfMetadata
+      } = doc.metadata;
+      const formattedMetadata = Object.entries(restOfMetadata).map(([key, value]) => `${key}: ${value}`).join('\n');
+      return `${doc.pageContent}\n\n\n${formattedMetadata}`;
     }).join("\n\n");
   }
 
