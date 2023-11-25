@@ -70,168 +70,192 @@ try {
             docs.push(newDoc);
         })
         .on('end', () => {
-            console.log(docs[0].metadata["Code"]);
-            console.log(docs[0].pageContent);
+            (async () => {
+                // console.log(docs[0].metadata["Code"]);
+                // console.log(docs[0].pageContent);
+                // const splitter = new RecursiveCharacterTextSplitter();
+                // const documents = await splitter.splitDocuments(docs);
+                // console.log(documents)
+                const sbApiKey = process.env.SUPABASE_PRIVATE_KEY;
+                const sbUrl = process.env.SUPABASE_URL;
+                const openAIApiKey = process.env.OPENAI_API_KEY;
+
+                const client = createClient(sbUrl, sbApiKey);
+
+                await SupabaseVectorStore.fromDocuments(
+                    docs,
+                    new OpenAIEmbeddings({ openAIApiKey }),
+                    {
+                        client,
+                        tableName: "documents",
+                    }
+                );
+            })();
         });
 
 
-    /**
-    * Next, we define the attributes we want to be able to query on.
-    * in this case, we want to be able to query on the genre, year, director, rating, and length of the movie.
-    * We also provide a description of each attribute and the type of the attribute.
-    * This is used to generate the query prompts.
-    */
-    const attributeInfo = [
-        {
-            name: "Code",
-            description: "The code of the item",
-            type: "text",
-        },
-        {
-            name: "Support Item Name",
-            description: "The name of the item",
-            type: "text",
-        },
-        {
-            name: "Registration Group Name",
-            description: "The registration group name",
-            type: "text",
-        },
-        {
-            name: "Support Category Number",
-            description: "The support category number",
-            type: "text",
-        },
-        {
-            name: "Support Category Name",
-            description: "The support category name",
-            type: "text",
-        },
-        {
-            name: "Unit",
-            description: "The unit",
-            type: "text",
-        },
-        {
-            name: "Quote",
-            description: "The quote",
-            type: "text",
-        },
-        {
-            name: "ACT",
-            description: "The ACT price cap",
-            type: "text",
-        },
-        {
-            name: "NSW",
-            description: "The NSW price cap",
-            type: "text",
-        },
-        {
-            name: "NT",
-            description: "The NT price cap",
-            type: "text",
-        },
-        {
-            name: "QLD",
-            description: "The QLD price cap",
-            type: "text",
-        },
-        {
-            name: "SA",
-            description: "The SA price cap",
-            type: "text",
-        },
-        {
-            name: "TAS",
-            description: "The TAS price cap",
-            type: "text",
-        },
-        {
-            name: "VIC",
-            description: "The VIC price cap",
-            type: "text",
-        },
-        {
-            name: "WA",
-            description: "The WA price cap",
-            type: "text",
-        },
-        {
-            name: "Remote",
-            description: "The remote price cap",
-            type: "text",
-        },
-        {
-            name: "Very Remote",
-            description: "The very remote price cap",
-            type: "text",
-        },
-        {
-            name: "Non-Face-to-Face Support Provision",
-            description: "The non-face-to-face support provision allowance",
-            type: "text",
-        },
-        {
-            name: "Provider Travel",
-            description: "The provider travel allowance",
-            type: "text",
-        },
-        {
-            name: "Short Notice Cancellations.",
-            description: "The short notice cancellations allowance",
-            type: "text",
-        },
-        {
-            name: "NDIA Requested Reports",
-            description: "The NDIA requested reports allowance",
-            type: "text",
-        },
-        {
-            name: "Irregular SIL Supports",
-            description: "The irregular SIL supports allowance",
-            type: "text",
-        },
-        {
-            name: "Type",
-            description: "The type of item",
-            type: "text",
-        },
-        {
-            name: "Detailed Item Description",
-            description: "The detailed item description",
-            type: "text",
-        },
-    ];
+
+    // Split the document using Character splitting.
 
 
-    /**
- * Next, we instantiate a vector store. This is where we store the embeddings of the documents.
- */
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PRIVATE_KEY) {
-        throw new Error(
-            "Supabase URL or private key not set. Please set it in the .env file"
-        );
-    }
 
-    const embeddings = new OpenAIEmbeddings();
-    const documentContents = "Data for each NDIS code";
-    const llm = new OpenAI();
-    const client = createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_PRIVATE_KEY
-    );
-    const vectorStore = await SupabaseVectorStore.fromDocuments(docs, embeddings, {
-        client,
-        tableName: "documents",
-    });
-    const selfQueryRetriever = await SelfQueryRetriever.fromLLM({
-        llm,
-        vectorStore,
-        documentContents,
-        attributeInfo,
-        structuredQueryTranslator: new SupabaseTranslator(),
-    });
+    //     /**
+    //     * Next, we define the attributes we want to be able to query on.
+    //     * in this case, we want to be able to query on the genre, year, director, rating, and length of the movie.
+    //     * We also provide a description of each attribute and the type of the attribute.
+    //     * This is used to generate the query prompts.
+    //     */
+    //     const attributeInfo = [
+    //         {
+    //             name: "Code",
+    //             description: "The code of the item",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Support Item Name",
+    //             description: "The name of the item",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Registration Group Name",
+    //             description: "The registration group name",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Support Category Number",
+    //             description: "The support category number",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Support Category Name",
+    //             description: "The support category name",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Unit",
+    //             description: "The unit",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Quote",
+    //             description: "The quote",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "ACT",
+    //             description: "The ACT price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "NSW",
+    //             description: "The NSW price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "NT",
+    //             description: "The NT price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "QLD",
+    //             description: "The QLD price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "SA",
+    //             description: "The SA price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "TAS",
+    //             description: "The TAS price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "VIC",
+    //             description: "The VIC price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "WA",
+    //             description: "The WA price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Remote",
+    //             description: "The remote price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Very Remote",
+    //             description: "The very remote price cap",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Non-Face-to-Face Support Provision",
+    //             description: "The non-face-to-face support provision allowance",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Provider Travel",
+    //             description: "The provider travel allowance",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Short Notice Cancellations.",
+    //             description: "The short notice cancellations allowance",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "NDIA Requested Reports",
+    //             description: "The NDIA requested reports allowance",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Irregular SIL Supports",
+    //             description: "The irregular SIL supports allowance",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Type",
+    //             description: "The type of item",
+    //             type: "text",
+    //         },
+    //         {
+    //             name: "Detailed Item Description",
+    //             description: "The detailed item description",
+    //             type: "text",
+    //         },
+    //     ];
+
+
+    //     /**
+    //  * Next, we instantiate a vector store. This is where we store the embeddings of the documents.
+    //  */
+    //     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PRIVATE_KEY) {
+    //         throw new Error(
+    //             "Supabase URL or private key not set. Please set it in the .env file"
+    //         );
+    //     }
+
+    //     const embeddings = new OpenAIEmbeddings();
+    //     const documentContents = "Data for each NDIS code";
+    //     const llm = new OpenAI();
+    //     const client = createClient(
+    //         process.env.SUPABASE_URL,
+    //         process.env.SUPABASE_PRIVATE_KEY
+    //     );
+    //     const vectorStore = await SupabaseVectorStore.fromDocuments(docs, embeddings, {
+    //         client,
+    //         tableName: "documents",
+    //     });
+    //     const selfQueryRetriever = await SelfQueryRetriever.fromLLM({
+    //         llm,
+    //         vectorStore,
+    //         documentContents,
+    //         attributeInfo,
+    //         structuredQueryTranslator: new SupabaseTranslator(),
+    //     });
 
 
     // const query1 = await selfQueryRetriever.getRelevantDocuments(
