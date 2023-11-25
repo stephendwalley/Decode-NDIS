@@ -22,6 +22,7 @@ function App() {
   const [decodedText, setDecodedText] = useState('');
   const [chain, setChain] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -172,30 +173,44 @@ function App() {
     }
   };
 
-
-
   const handleFileUpload = (e) => {
     setUploadedFile(e.target.files[0]);
   };
-
 
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
       {/* <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center pt-5">Decode NDIS</h1> */}
       <img src={logo} className="h-32" alt="Tailwind Play" />
+      <div
+        className={`h-16 w-1/2 p-4 my-4 bg-white rounded focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500 ${uploadedFile ? 'border-none shadow-none bg-opacity-50' : 'border border-gray-300 shadow-sm'}`}
+      >
+        {imageUrl ? (
+          <>
+            <img src={imageUrl} alt="Uploaded" className="h-full w-full object-cover" />
+            <p className="text-center">{uploadedFile.name}</p>
+          </>
+        ) : (
+          <button
+            onClick={() => document.getElementById('file-upload').click()}
+            className="w-full h-full text-center font-semibold"
+          >
+            {uploadedFile ? <><strong>Upload successful:</strong> {uploadedFile.name}</> : 'Click to upload your invoice'}
+          </button>
+        )}
+        <input
+          id="file-upload"
+          type="file"
+          onChange={handleFileUpload}
+          style={{ display: 'none' }} // Hide the file input element
+        />
+      </div>
       <textarea
         value={inputText}
         onChange={handleInputChange}
-        placeholder="Enter or paste the invoice text here"
-        className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
+        placeholder="Or, enter invoice text here"
+        className="h-1/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
-      <p 
-      className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
-      >
-        or</p>
-      <input type="file" onChange={handleFileUpload} 
-      className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
-      />
+
       <button
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
