@@ -8,7 +8,7 @@ https://youtu.be/bZ5OensSb6k
 
 ## Overview
 - Utilises GPT-4 Vision to extract uploaded invoice image data (works on handwritten invoices)
-- Utilises langchain and supabase queries on vector database of official NDIS documents
+- Utilises langchain and queries on supabase vector database of official NDIS documents - using openai embeddings.
 - Outputs most relevant codes and summarises rules using gpt-4
 - React JS frontend
 - Tailwind CSS styles
