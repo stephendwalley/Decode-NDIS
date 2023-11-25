@@ -13,6 +13,7 @@ import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable"
 
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
+import { OpenAI } from "langchain/llms/openai";
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -24,11 +25,30 @@ function App() {
   const sbApiKey = process.env.REACT_APP_SUPABASE_API_KEY;
   const sbUrl = process.env.REACT_APP_SUPABASE_URL;
   const client = createClient(sbUrl, sbApiKey);
+  const llm = new OpenAI();
 
-  const vectorStore = new SupabaseVectorStore(embeddings, {
+  // const vectorStore = new SupabaseVectorStore(embeddings, {
+  //   client,
+  //   tableName: "documents",
+  //   queryName: "match_documents",
+  // });
+
+  const vectorStore = await SupabaseVectorStore.fromDocuments(docs, embeddings, {
     client,
     tableName: "documents",
     queryName: "match_documents",
+  });
+
+  const selfQueryRetriever = await SelfQueryRetriever.fromLLM({
+    llm,
+    vectorStore,
+    documentContents,
+    attributeInfo,
+    /**
+     * We need to use a translator that translates the queries into a
+     * filter format that the vector store can understand. LangChain provides one here.
+     */
+    structuredQueryTranslator: new SupabaseTranslator(),
   });
 
   // const retriever = vectorStore.asRetriever();
@@ -40,9 +60,19 @@ function App() {
       tableName: "documents",
       similarityQueryName: "match_documents",
       keywordQueryName: "kw_match_documents",
+      filter: (rpc) =>
+        rpc
+          .filter("metadata->>Support Category Number", "eq", "3"),
     });
 
-    const results = await retriever.getRelevantDocuments("potato");
+    // Filter based on plans
+    // const funcFilterB = (rpc) =>
+    //   rpc
+    //     .filter("metadata->b::int", "lt", 3)
+    //     .filter("metadata->c::int", "gt", 7)
+    //     .filter("metadata->>Support Category Number", "eq", "1");
+
+    const results = await retriever.getRelevantDocuments("sleepover");
 
     console.log(results);
   };
