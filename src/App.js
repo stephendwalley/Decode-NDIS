@@ -122,24 +122,34 @@ function App() {
   };
 
   return (
-    <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
-      <h1 className="font-sans text-6xl font-extrabold text-teal-600 text-center">Decode NDIS</h1>
+    <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center pt-10">
+      <h1 className="font-sans text-6xl font-extrabold text-gray-600 text-center p-5">Decode NDIS</h1>
       <textarea
         value={inputText}
         onChange={handleInputChange}
         placeholder="Enter or paste the invoice text here"
-        className="h-64 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
+        className="h-2/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
       />
       <button
         onClick={handleSubmit}
-        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block text-center w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg"
+        className="inline-flex items-center px-6 py-3 border border-transparent text-center font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg"
       >Decode</button>
       <p
-        className="text-center text-gray-500 text-sm"
+        className="text-center text-gray-500 text-lg font-bold my-4 w-1/2 mx-auto"
       >Decoded NDIS Code:</p>
-      <p
-        className="text-center text-gray-500 text-md font-semibold my-4 w-1/2 mx-auto"
-      >{decodedText}</p>
+      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200">
+        <p className="text-center text-gray-500 text-md font-semibold my-4 w-max">
+          {decodedText.split('\n').map((line, index) => (
+            <React.Fragment key={index}>
+              {line.startsWith('Item Code:') ? <strong>{line}</strong> : line}
+              <br />
+            </React.Fragment>
+          ))}
+        </p>
+      </div>
+      <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-0">
+        The information supplied is taken directly from the Support Catalogue and NDIS Pricing Arrangements and Price Limits provided by the NDIS. Decode NDIS take no responsibility or liability for its accuracy.
+      </p>
     </div>
   );
 }
