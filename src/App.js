@@ -6,11 +6,13 @@ import { PromptTemplate } from "langchain/prompts";
 
 
 import { createClient } from "@supabase/supabase-js";
-import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
+import { SupabaseVectorStore, SupabaseFilterRPCCall } from "langchain/vectorstores/supabase";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { StringOutputParser } from "langchain/schema/output_parser";
 
 import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable"
+
+import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
 function App() {
   const [inputText, setInputText] = useState('');
@@ -29,51 +31,64 @@ function App() {
     queryName: "match_documents",
   });
 
-  const retriever = vectorStore.asRetriever();
+  // const retriever = vectorStore.asRetriever();
+  const getRelevantDocuments = async () => {
+    const retriever = new SupabaseHybridSearch(embeddings, {
+      client,
+      similarityK: 10,
+      keywordK: 6,
+      tableName: "documents",
+      similarityQueryName: "match_documents",
+      keywordQueryName: "kw_match_documents",
+    });
+
+    const results = await retriever.getRelevantDocuments("potato");
+
+    console.log(results);
+  };
+
+  // const llm = new ChatOpenAI({
+  //   openAIApiKey,
+  //   modelName: "gpt-4"
+  // });
+
+  // const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
+  // Find the answer based on the context provided.
+  // Respond with the item code which best matches. Unless specified, assume the activity is 1 on 1 hourly on weekday with normal intensity. 
+  // Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
+  // context: {context}
+  // question: {question}
+  // answer:
+  // `;
+
+  // const combineDocuments = (docs) => {
+  //   return docs.map((doc) => doc.pageContent).join("\n\n");
+  // }
+
+  // const parser2 = new StringOutputParser();
+
+  // const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
+  // const customQuestion = "Given an item description and the assumption that the activity is 1 on 1 hourly on a weekday with normal intensity unless otherwise specified, match the item description to the most suitable NDIS code. Additionally, find the price caps associated with that specific NDIS code."
+
+  // const retrieverChain = RunnableSequence.from([
+  //   prevResult => `${customQuestion} ${prevResult.original_input.itemDesc}`,
+  //   retriever,
+  //   combineDocuments
+  // ]);
+
+  // const answerChain = answerPrompt.pipe(llm).pipe(parser2)
 
 
-  const llm = new ChatOpenAI({
-    openAIApiKey,
-    modelName: "gpt-4"
-  });
-
-  const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
-  Find the answer based on the context provided.
-  Respond with the item code which best matches. Unless specified, assume the activity is 1 on 1 hourly on weekday with normal intensity. 
-  Respond in the form: Item Code:\n Description: \nPrice Cap\n: Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
-  context: {context}
-  question: {question}
-  answer:
-  `;
-
-  const combineDocuments = (docs) => {
-    return docs.map((doc) => doc.pageContent).join("\n\n");
-  }
-
-  const parser2 = new StringOutputParser();
-
-  const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);
-  const customQuestion = "Given an item description and the assumption that the activity is 1 on 1 hourly on a weekday with normal intensity unless otherwise specified, match the item description to the most suitable NDIS code. Additionally, find the price caps associated with that specific NDIS code."
-
-  const retrieverChain = RunnableSequence.from([
-    prevResult => `${customQuestion} ${prevResult.original_input.itemDesc}`,
-    retriever,
-    combineDocuments
-  ]);
-
-  const answerChain = answerPrompt.pipe(llm).pipe(parser2)
-
-
-  const chain = RunnableSequence.from([
-    {
-      original_input: new RunnablePassthrough()
-    },
-    {
-      context: retrieverChain,
-      question: ({ original_input }) => original_input.itemDesc
-    },
-    answerChain
-  ])
+  // const chain = RunnableSequence.from([
+  //   {
+  //     original_input: new RunnablePassthrough()
+  //   },
+  //   {
+  //     context: retrieverChain,
+  //     question: ({ original_input }) => original_input.itemDesc
+  //   },
+  //   answerChain
+  // ])
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
@@ -82,9 +97,10 @@ function App() {
   const handleSubmit = async () => {
     try {
       console.log('Testing API call');
-      const response = await chain.invoke({ itemDesc: inputText });
-      console.log(response)
-      setDecodedText(response);
+      // const response = await chain.invoke({ itemDesc: inputText });
+      // console.log(response)
+      // setDecodedText(response);
+      getRelevantDocuments();
 
     } catch (error) {
       // Handle errors from the API call
