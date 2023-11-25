@@ -1,5 +1,5 @@
 # Decode NDIS
-An assistant app for self-managed NDIS participants to scan invoices and interpret activity and item text descriptions into relevant and applicable numerical NDIS codes for insurance claims.
+An assistant app for NDIS participants to scan invoices and interpret activity and item text descriptions into relevant and applicable numerical NDIS codes for insurance claims.
 
 ## Decode NDIS | AI Hack 2023 Submission
 https://youtu.be/bZ5OensSb6k
