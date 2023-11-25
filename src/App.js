@@ -15,14 +15,13 @@ import { RunnablePassthrough, RunnableSequence } from "langchain/schema/runnable
 import { SupabaseHybridSearch } from "langchain/retrievers/supabase";
 
 import logo from './Decode_NDIS.png';
-
-import fs from 'fs';
 import axios from 'axios';
 
 function App() {
   const [inputText, setInputText] = useState('');
   const [decodedText, setDecodedText] = useState('');
   const [chain, setChain] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -126,35 +125,48 @@ function App() {
     }
   };
 
-  const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
-  const openai = new OpenAI({ apiKey: openAIApiKey});
 
+  
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
+    const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const base64Image = event.target.result;
+      const base64Image = event.target.result.split(',')[1]; // Remove the data URL prefix
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4-vision-preview",
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      };
+
+      const payload = {
+        model: 'gpt-4-vision-preview',
         messages: [
           {
-            role: "user",
+            role: 'user',
             content: [
-              { type: "text", text: "What’s in this image?" },
+              { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
               {
-                type: "image_url",
-                image_url: base64Image,
-              },
-            ],
-          },
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
+              }
+            ]
+          }
         ],
-      });
-      console.log(response.choices[0]);
+        max_tokens: 300
+      };
+
+      try {
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
+        console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      }
     };
     reader.readAsDataURL(file);
   };
-
 
   return (
     <div className="h-full bg-gray-100 bg-cover flex flex-col items-center justify-center">
