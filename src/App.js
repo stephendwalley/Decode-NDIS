@@ -144,7 +144,7 @@ function App() {
             {
               role: 'user',
               content: [
-                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
+                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item. Seperate each line item with a new line.' },
                 {
                   type: 'image_url',
                   image_url: {
@@ -161,9 +161,17 @@ function App() {
           const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
           const openaiResponse = response.data.choices[0].message.content;
           console.log(openaiResponse);
-          const chainResponse = await chain.invoke({ itemDesc: openaiResponse });
-          console.log(chainResponse);
-          setDecodedText(chainResponse);
+
+          const items = openaiResponse.split('\n\n');
+          let combinedResponse = '';
+
+          for (let item of items) {
+            const chainResponse = await chain.invoke({ itemDesc: item });
+            console.log(chainResponse);
+            combinedResponse += chainResponse + '\n\n';
+          }
+
+          setDecodedText(combinedResponse);
         } catch (error) {
           console.error(error);
         }
