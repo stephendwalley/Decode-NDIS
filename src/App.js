@@ -52,7 +52,7 @@ function App() {
       modelName: "gpt-4"
     });
 
-    const answerTemplate = `Given an item or activity description find the most suitable NDIS code. 
+    const answerTemplate = `Given an item or activity description find the most suitable NDIS code or codes.
     Find the answer based on the context provided.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
     Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
@@ -144,7 +144,7 @@ function App() {
             {
               role: 'user',
               content: [
-                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item.' },
+                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item. Seperate each line item with a new line.' },
                 {
                   type: 'image_url',
                   image_url: {
@@ -161,9 +161,17 @@ function App() {
           const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, { headers });
           const openaiResponse = response.data.choices[0].message.content;
           console.log(openaiResponse);
-          const chainResponse = await chain.invoke({ itemDesc: openaiResponse });
-          console.log(chainResponse);
-          setDecodedText(chainResponse);
+
+          const items = openaiResponse.split('\n\n');
+          let combinedResponse = '';
+
+          for (let item of items) {
+            const chainResponse = await chain.invoke({ itemDesc: item });
+            console.log(chainResponse);
+            combinedResponse += chainResponse + '\n\n';
+          }
+
+          setDecodedText(combinedResponse);
         } catch (error) {
           console.error(error);
         }
