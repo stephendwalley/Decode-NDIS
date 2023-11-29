@@ -277,12 +277,12 @@ function App() {
           style={{ display: 'none' }} // Hide the file input element
         />
       </div>
-      <textarea
+      {/* <textarea
         value={inputText}
         onChange={handleInputChange}
         placeholder="Or, enter invoice text here"
         className="h-1/6 w-1/2 p-4 my-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-md resize-none mx-auto block text-center text-gray-500 font-semibold placeholder-gray-500 placeholder-opacity-50 focus:placeholder-opacity-75 focus:placeholder-gray-400 focus:bg-white focus:border-teal-500 focus:ring-teal-500"
-      />
+      /> */}
       <button onClick={() => setModalIsOpen(true)} className="underline text-gray-500 hover:text-gray-800 mx-auto block w-1/2 my-4 font-semibold">Select your plan categories (optional)</button>
 
       <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} style={{ content: { width: '30%', margin: '0 auto', position: 'absolute', top: '30%', bottom: '30%' }, overlay: { backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(5px)' } }}>
