@@ -191,13 +191,13 @@ function App() {
             console.log(chainResponseItemObject);
             console.log(chainResponse);
             // combinedResponse += chainResponse + '\n\n';
-            
+
             // Extrac information from image response
             const linesProv = item.split('\n');
             const descriptionProv = linesProv[1].replace(/Description: /, '');
-            const quantity = parseInt(linesProv[2].replace(/\D/g, ''), 10);
-            const unitPrice = parseFloat(linesProv[3].replace(/[^0-9.]/g, ''))
-            const amount = parseInt(linesProv[4].replace(/\D/g, ''), 10);
+            const quantity = parseFloat(linesProv[2].replace(/[^0-9.]/g, ''));
+            const unitPrice = parseFloat(linesProv[3].replace(/[^0-9.]/g, ''));
+            const amount = parseFloat(linesProv[4].replace(/[^0-9.]/g, ''));
 
             const informationProvObject = { descriptionProv, quantity, unitPrice, amount };
 
@@ -207,18 +207,6 @@ function App() {
 
             combinedDecodedText.push(combinedResponseObject);
           }
-
-          const items_decode = openaiResponse.split('\n\n').map(item => {
-            const lines = item.split('\n');
-
-            const description = lines[1].replace(/Description: /, '');
-            const quantity = parseInt(lines[2].replace(/\D/g, ''), 10);
-            const unitPrice = parseFloat(lines[3].replace(/[^0-9.]/g, ''))
-            const amount = parseInt(lines[4].replace(/\D/g, ''), 10);
-            return { description, quantity, unitPrice, amount };
-          });
-
-          console.log(items_decode);
 
           // setDecodedText(combinedResponse);
           setDecodedText(combinedDecodedText);
