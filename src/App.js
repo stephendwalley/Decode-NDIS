@@ -55,7 +55,7 @@ function App() {
     const answerTemplate = `Given an item or activity description find the most suitable NDIS code or codes.
     Find the answer based on the context provided.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
-    Respond in the form: Item Code:\n Description: \nPrice Cap: $x \n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
+    Respond in the form: Option # Item Code:\n Description: \nPrice Cap: $x \n Rules: \n\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option. Do not provide other details or formatting.
     context: {context}
     question: {question}
     answer:
@@ -177,7 +177,10 @@ function App() {
 
             // Extract information from gpt and retrieval response and store in an object
             const lines = chainResponseSplit[0].split('\n');
-            const itemCode = lines[0].replace('Item Code: ', '');
+            // const itemCode = lines[0].replace('Item Code: ', '');
+            const itemCodeMatch = lines[0].match(/Item Code: (\S+)/);
+            const itemCode = itemCodeMatch ? itemCodeMatch[1] : null;
+            console.log(itemCode)
             const description = lines[1].replace('Description: ', '');
             const priceCap = parseFloat(lines[2].replace(/[^0-9.]/g, ''));
 
@@ -207,6 +210,7 @@ function App() {
 
           const items_decode = openaiResponse.split('\n\n').map(item => {
             const lines = item.split('\n');
+
             const description = lines[1].replace(/Description: /, '');
             const quantity = parseInt(lines[2].replace(/\D/g, ''), 10);
             const unitPrice = parseFloat(lines[3].replace(/[^0-9.]/g, ''))
