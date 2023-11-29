@@ -28,6 +28,8 @@ function App() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState(Array.from({ length: 15 }, (_, i) => (i + 1).toString()));
 
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   useEffect(() => {
     const openAIApiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -176,21 +178,18 @@ function App() {
             const chainResponseSplit = chainResponse.split('\n\n');
 
             // Extract information from gpt and retrieval response and store in an object
-            const lines = chainResponseSplit[0].split('\n');
-            // const itemCode = lines[0].replace('Item Code: ', '');
-            const itemCodeMatch = lines[0].match(/Item Code: (\S+)/);
-            const itemCode = itemCodeMatch ? itemCodeMatch[1] : null;
-            console.log(itemCode)
-            const description = lines[1].replace('Description: ', '');
-            const priceCap = parseFloat(lines[2].replace(/[^0-9.]/g, ''));
+            const chainResponseItemObjects = chainResponseSplit.map(split => {
+              const lines = split.split('\n');
+              const itemCodeMatch = lines[0].match(/Item Code: (\S+)/);
+              const itemCode = itemCodeMatch ? itemCodeMatch[1] : null;
+              const description = lines[1].replace('Description: ', '');
+              const priceCap = parseFloat(lines[2].replace(/[^0-9.]/g, ''));
 
-            // Create an object for the current item
-            const chainResponseItemObject = { itemCode, description, priceCap };
+              // Create an object for the current item
+              return { itemCode, description, priceCap };
+            });
 
-            // Output the results or use them as needed
-            console.log(chainResponseItemObject);
-            console.log(chainResponse);
-            // combinedResponse += chainResponse + '\n\n';
+            console.log(chainResponseItemObjects);
 
             // Extrac information from image response
             const linesProv = item.split('\n');
@@ -202,7 +201,7 @@ function App() {
             const informationProvObject = { descriptionProv, quantity, unitPrice, amount };
 
             // Combine the two objects
-            const combinedResponseObject = { ...chainResponseItemObject, ...informationProvObject };
+            const combinedResponseObject = { ...chainResponseItemObjects[0], ...informationProvObject, alternativeChoices: chainResponseItemObjects.slice(1) };
             console.log(combinedResponseObject);
 
             combinedDecodedText.push(combinedResponseObject);
@@ -236,6 +235,18 @@ function App() {
     const { value, checked } = event.target;
     setSelectedCategories(prevState => checked ? [...prevState, value] : prevState.filter(category => category !== value));
   };
+
+
+  const handleItemClick = (item) => {
+    // If the clicked item is already selected, hide its alternative codes
+    if (selectedItem === item) {
+      setSelectedItem(null);
+    } else {
+      setSelectedItem(item);
+    }
+  };
+
+
 
   Modal.setAppElement('#root');
 
@@ -294,30 +305,40 @@ function App() {
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
       >Decode</button>
-      {/* <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
-        {decodedText.split('\n').filter(line => line.trim() !== '').map((line, index) => (
-          <React.Fragment key={index}>
-            {line.startsWith('Item Code:') && <p className="text-lg font-bold text-gray-500"><strong>{line.substring(0, 'Item Code: '.length)}</strong>{line.substring('Item Code:'.length).trim()}</p>}
-            {line.startsWith('Description:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Description: '.length)}</strong>{line.substring('Description:'.length).trim()}</p>}
-            {line.startsWith('Price Cap:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Price Cap: '.length)}</strong>{line.substring('Price Cap:'.length).trim()}</p>}
-            {!line.startsWith('Item Code:') && !line.startsWith('Description:') && !line.startsWith('Price Cap:') && <p className="text-lg text-gray-500">{line}</p>}
-            <br />
-          </React.Fragment>
-        ))}
-      </div> */}
       <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
         {decodedText.map((item, index) => (
-          <React.Fragment key={index}>
+          <div key={index}>
             <p className="text-lg font-bold text-gray-500"><strong>Item Code:</strong> {item.itemCode}</p>
-            <p className="text-lg text-gray-500"><strong>Description:</strong> {item.description}</p>
-            <p className="text-lg text-gray-500"><strong>Quantity:</strong> {item.quantity}</p>
+            <p className="text-lg text-gray-500"><strong>Description:</strong> {item.descriptionProv}</p> 
             <p className="text-lg text-gray-500"><strong>Unit Price:</strong> ${item.unitPrice}</p>
-            <p className="text-lg text-gray-500"><strong>Amount:</strong> ${item.amount}</p>
             <p className="text-lg text-gray-500"><strong>Price Cap:</strong> ${item.priceCap}</p>
+            <p className="text-lg text-gray-500"><strong>Quantity:</strong> {item.quantity}</p>
+            <p className="text-lg text-gray-500"><strong>Amount:</strong> ${item.amount}</p>
+            {item.alternativeChoices && item.alternativeChoices.length > 0 && (
+              <button
+                className="underline text-gray-500 hover:text-gray-800 mx-auto block w-1/2 my-4 font-semibold"
+                onClick={() => handleItemClick(item)}>
+                {selectedItem === item ? 'Hide' : 'Show'} Alternative Codes
+              </button>
+            )}
             <br />
-          </React.Fragment>
+          </div>
         ))}
       </div>
+
+      {selectedItem && (
+        <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
+          <h2 className="text-lg font-bold text-gray-500">Alternative Choices</h2>
+          {selectedItem.alternativeChoices.map((choice, index) => (
+            <div key={index}>
+              <p className="text-lg font-bold text-gray-500"><strong>Item Code:</strong> {choice.itemCode}</p>
+              <p className="text-lg text-gray-500"><strong>Description:</strong> {choice.description}</p>
+              <p className="text-lg text-gray-500"><strong>Price Cap:</strong> ${choice.priceCap}</p>
+              <br />
+            </div>
+          ))}
+        </div>
+      )}
       <p className="text-center text-gray-500 text-sm font-normal w-1/2 mx-auto pt-5 fixed inset-x-0 bottom-2">
         The information supplied is taken directly from the Support Catalogue and NDIS Pricing Arrangements and Price Limits provided by the NDIS. Decode NDIS take no responsibility or liability for its accuracy.
       </p>
