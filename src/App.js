@@ -20,7 +20,7 @@ import axios from 'axios';
 
 function App() {
   const [inputText, setInputText] = useState('');
-  const [decodedText, setDecodedText] = useState('');
+  const [decodedText, setDecodedText] = useState([]);
   const [chain, setChain] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
   const imageUrl = null;
@@ -168,25 +168,41 @@ function App() {
 
 
           let combinedResponse = '';
+          let combinedDecodedText = [];
 
           for (let item of items) {
             const chainResponse = await chain.invoke({ itemDesc: item });
 
             const chainResponseSplit = chainResponse.split('\n\n');
 
-            // Extract information inline and store in an object
+            // Extract information from gpt and retrieval response and store in an object
             const lines = chainResponseSplit[0].split('\n');
             const itemCode = lines[0].replace('Item Code: ', '');
             const description = lines[1].replace('Description: ', '');
             const priceCap = parseFloat(lines[2].replace(/[^0-9.]/g, ''));
 
             // Create an object for the current item
-            const itemObject = { itemCode, description, priceCap };
+            const chainResponseItemObject = { itemCode, description, priceCap };
 
             // Output the results or use them as needed
-            console.log(itemObject);
+            console.log(chainResponseItemObject);
             console.log(chainResponse);
-            combinedResponse += chainResponse + '\n\n';
+            // combinedResponse += chainResponse + '\n\n';
+            
+            // Extrac information from image response
+            const linesProv = item.split('\n');
+            const descriptionProv = linesProv[1].replace(/Description: /, '');
+            const quantity = parseInt(linesProv[2].replace(/\D/g, ''), 10);
+            const unitPrice = parseFloat(linesProv[3].replace(/[^0-9.]/g, ''))
+            const amount = parseInt(linesProv[4].replace(/\D/g, ''), 10);
+
+            const informationProvObject = { descriptionProv, quantity, unitPrice, amount };
+
+            // Combine the two objects
+            const combinedResponseObject = { ...chainResponseItemObject, ...informationProvObject };
+            console.log(combinedResponseObject);
+
+            combinedDecodedText.push(combinedResponseObject);
           }
 
           const items_decode = openaiResponse.split('\n\n').map(item => {
@@ -200,7 +216,8 @@ function App() {
 
           console.log(items_decode);
 
-          setDecodedText(combinedResponse);
+          // setDecodedText(combinedResponse);
+          setDecodedText(combinedDecodedText);
         } catch (error) {
           console.error(error);
         }
@@ -285,13 +302,26 @@ function App() {
         onClick={handleSubmit}
         className="flex justify-center items-center px-6 py-3 border border-transparent text-center rounded-md shadow-sm text-white bg-customColor hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 mx-auto block w-1/2 my-4 font-semibold focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition duration-150 ease-in-out hover:bg-teal-700 hover:shadow-lg text-lg"
       >Decode</button>
-      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
+      {/* <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
         {decodedText.split('\n').filter(line => line.trim() !== '').map((line, index) => (
           <React.Fragment key={index}>
             {line.startsWith('Item Code:') && <p className="text-lg font-bold text-gray-500"><strong>{line.substring(0, 'Item Code: '.length)}</strong>{line.substring('Item Code:'.length).trim()}</p>}
             {line.startsWith('Description:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Description: '.length)}</strong>{line.substring('Description:'.length).trim()}</p>}
             {line.startsWith('Price Cap:') && <p className="text-lg text-gray-500"><strong>{line.substring(0, 'Price Cap: '.length)}</strong>{line.substring('Price Cap:'.length).trim()}</p>}
             {!line.startsWith('Item Code:') && !line.startsWith('Description:') && !line.startsWith('Price Cap:') && <p className="text-lg text-gray-500">{line}</p>}
+            <br />
+          </React.Fragment>
+        ))}
+      </div> */}
+      <div className="max-h-64 overflow-auto scrollbar scrollbar-thumb-gray-500 scrollbar-thumb-rounded scrollbar-track-gray-200 pb-5 mx-auto w-1/2 mb-1 pt-3">
+        {decodedText.map((item, index) => (
+          <React.Fragment key={index}>
+            <p className="text-lg font-bold text-gray-500"><strong>Item Code:</strong> {item.itemCode}</p>
+            <p className="text-lg text-gray-500"><strong>Description:</strong> {item.description}</p>
+            <p className="text-lg text-gray-500"><strong>Quantity:</strong> {item.quantity}</p>
+            <p className="text-lg text-gray-500"><strong>Unit Price:</strong> ${item.unitPrice}</p>
+            <p className="text-lg text-gray-500"><strong>Amount:</strong> ${item.amount}</p>
+            <p className="text-lg text-gray-500"><strong>Price Cap:</strong> ${item.priceCap}</p>
             <br />
           </React.Fragment>
         ))}
