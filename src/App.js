@@ -55,7 +55,7 @@ function App() {
     const answerTemplate = `Given an item or activity description find the most suitable NDIS code or codes.
     Find the answer based on the context provided.
     Unless specified, assume the activity is 1 on 1 hourly on a weekday with normal intensity. 
-    Respond in the form: Item Code:\n Description: \nPrice Cap\n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
+    Respond in the form: Item Code:\n Description: \nPrice Cap: $x \n Rules\n In the case of multiple options, provide the other options with the same format. Order the options in terms of which is most likely to be the correct option.
     context: {context}
     question: {question}
     answer:
@@ -144,7 +144,7 @@ function App() {
             {
               role: 'user',
               content: [
-                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item. Seperate each line item with a new line.' },
+                { type: 'text', text: 'Extract the invoice items and their descriptions along with the price charged, quantity and total for each line item. Seperate each line item with a new line. If only one line item, just give that line item and provide no further information. In the form: Item #/n Description: /n Quantity: /n Unit Price: /n Line Total: /n' },
                 {
                   type: 'image_url',
                   image_url: {
@@ -163,13 +163,42 @@ function App() {
           console.log(openaiResponse);
 
           const items = openaiResponse.split('\n\n');
+          console.log(items)
+
+
+
           let combinedResponse = '';
 
           for (let item of items) {
             const chainResponse = await chain.invoke({ itemDesc: item });
+
+            const chainResponseSplit = chainResponse.split('\n\n');
+
+            // Extract information inline and store in an object
+            const lines = chainResponseSplit[0].split('\n');
+            const itemCode = lines[0].replace('Item Code: ', '');
+            const description = lines[1].replace('Description: ', '');
+            const priceCap = parseFloat(lines[2].replace(/[^0-9.]/g, ''));
+
+            // Create an object for the current item
+            const itemObject = { itemCode, description, priceCap };
+
+            // Output the results or use them as needed
+            console.log(itemObject);
             console.log(chainResponse);
             combinedResponse += chainResponse + '\n\n';
           }
+
+          const items_decode = openaiResponse.split('\n\n').map(item => {
+            const lines = item.split('\n');
+            const description = lines[1].replace(/Description: /, '');
+            const quantity = parseInt(lines[2].replace(/\D/g, ''), 10);
+            const unitPrice = parseFloat(lines[3].replace(/[^0-9.]/g, ''))
+            const amount = parseInt(lines[4].replace(/\D/g, ''), 10);
+            return { description, quantity, unitPrice, amount };
+          });
+
+          console.log(items_decode);
 
           setDecodedText(combinedResponse);
         } catch (error) {
